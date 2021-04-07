@@ -1,68 +1,88 @@
-var View = function() 
-{	
-	this.platform = document.querySelector('#platform');
-   	this.bricks = null;
-	this.ball = document.querySelector('#ball');
-	this.field = document.querySelector('#field');
-	
-    this.onKeyDownEvent = null;
-    this.onMouseMoveEvent = null;
-};
+function rgb2hex(rgb) {
+	var input = /^rgb\(([a-f\d]+)\,([a-f\d]+)\,([a-f\d]+)\)$/.exec(rgb);
+	var r = parseInt(input[1], 10);
+	var g = parseInt(input[2], 10);
+	var b = parseInt(input[3], 10);
+	var res = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+	return res;
+}
 
-View.prototype.render = function (objs) 
-{
-	this.platform.style.top = objs.platform.y + 'px';
-	this.platform.style.left = objs.platform.x + 'px';
-	this.platform.style.width = objs.platform.w + 'px';
-	this.platform.style.height = objs.platform.h + 'px';
-		
-    this.ball.style.top = objs.ball.y + 'px';	
-	this.ball.style.left = objs.ball.x + 'px';
-	this.ball.style.width = objs.ball.w + 'px';
-	this.ball.style.height = objs.ball.h + 'px';
+var View = function () {
+	this.onKeyDownEvent = null;
+	this.onMouseMoveEvent = null;
+	this.ctx = null;
 
-	objs.bricks.forEach((brick, i) => {
-		if (this.blockStates[i] == true && brick.alive == true)
-		{
-			this.bricks[i].style.visibility = 'visible';
-		}
-
-		if (this.blockStates[i] == true && brick.alive == false)
-		{
-			this.bricks[i].style.visibility = 'hidden';
-		}
-	});
-};
-
-View.prototype.init = function (objs)
-{
-    document.addEventListener('keydown', this.onKeyDownEvent);
-    document.addEventListener('mousemove', this.onMouseMoveEvent);
-
+	this.prev_platform_x;
+	this.prev_ball_x;
+	this.prev_ball_y;
+	this.prev_ball_w;
+	this.ball_color;
 	this.blockStates = [];
+};
 
-    this.field.style.top = objs.field.y + 'px';	
-	this.field.style.left = objs.field.x + 'px';
-	this.field.style.width = objs.field.w + 'px';
-	this.field.style.height = objs.field.h + 'px';
+View.prototype.init = function (objs) {
+	document.addEventListener('keydown', this.onKeyDownEvent);
+	document.addEventListener('mousemove', this.onMouseMoveEvent);
 
-	this.ball.style.background = objs.ball.color;
+	var canvasScene = document.getElementById("field");
+	this.ctx = canvasScene.getContext('2d');
 
+	canvasScene.width = objs.field.w;
+	canvasScene.height = objs.field.h;
+	this.canvasw = canvasScene.width;
+	this.canvash = canvasScene.height;
+
+	this.ctx.fillStyle = 'white';
+	this.ctx.fillRect(0, 0, this.canvasw, this.canvash);
+
+	ball_color = rgb2hex(objs.ball.color);
+
+	this.prev_platform_x = objs.platform.x;
+	this.prev_ball_x = objs.ball.x;
+	this.prev_ball_y = objs.ball.y;
+	this.prev_ball_w = objs.ball.w;
+	this.blockStates = [];
 	objs.bricks.forEach(brick => {
-		let div = document.createElement('div');
-		div.className = "brick";
-
-		div.style.top = brick.y + 'px';
-		div.style.left = brick.x + 'px';
-		div.style.width = brick.w + 'px';
-		div.style.height = brick.h + 'px';
-
-		field.appendChild(div);
-
 		this.blockStates.push(brick.alive);
 	});
+};
 
-	this.bricks = document.querySelectorAll('.brick');
+View.prototype.render = function (objs) {
+	this.ctx.beginPath();
+	this.ctx.arc(this.prev_ball_x + this.prev_ball_w / 2, this.prev_ball_y + this.prev_ball_w / 2, this.prev_ball_w / 2 + 1, 0, Math.PI * 2, false);
+	this.ctx.closePath();
+	this.ctx.fillStyle = "white";
+	this.ctx.fill();
+
+	this.prev_ball_x = objs.ball.x;
+	this.prev_ball_y = objs.ball.y;
+
+	this.ctx.beginPath();
+	this.ctx.arc(objs.ball.x + objs.ball.w / 2, objs.ball.y + objs.ball.h / 2, objs.ball.w / 2, 0, Math.PI * 2, false);
+	this.ctx.closePath();
+	this.ctx.fillStyle = objs.ball.color;
+	this.ctx.fill();
+
+	this.ctx.strokeStyle = "white";
+	this.ctx.clearRect(this.prev_platform_x, objs.platform.y, objs.platform.w, objs.platform.h);
+	this.ctx.strokeRect(this.prev_platform_x, objs.platform.y, objs.platform.w, objs.platform.h);
+	this.ctx.fillStyle = "black";
+	this.prev_platform_x = objs.platform.x;
+
+	this.ctx.fillRect(objs.platform.x, objs.platform.y, objs.platform.w, objs.platform.h);
+	objs.bricks.forEach((brick, i) => {
+		if (this.blockStates[i] == true && brick.alive == true) {
+			this.blockStates[i] = true;
+			this.ctx.fillStyle = "gray";
+			this.ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+		}
+
+		if (this.blockStates[i] == true && brick.alive == false) {
+			this.blockStates[i] = false;
+			this.ctx.fillStyle = "white";
+			this.ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+		}
+	});
 };
 
 var arkanoidView = new View();
