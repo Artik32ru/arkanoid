@@ -1,0 +1,25 @@
+body {
+    margin: 0px;
+    padding: 0px;
+}
+
+#field {
+    border: 1px solid #ccc;
+    font-size: 0;
+    position: absolute;
+}
+
+.brick {
+    background: gray;
+    position: absolute;
+}
+
+#platform {
+    background: black;
+    position: absolute;
+}
+
+#ball {
+    border-radius: 50%;
+    position: absolute;
+}
